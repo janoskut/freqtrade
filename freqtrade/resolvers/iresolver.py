@@ -176,9 +176,11 @@ class IResolver:
             logger.debug(f"Path {module_path}")
             for obj in cls._get_valid_object(module_path, object_name=None,
                                              enum_failed=enum_failed):
+                timeframe = getattr(obj[0], 'timeframe', None) if obj is not None else None
                 objects.append(
                     {'name': obj[0].__name__ if obj is not None else '',
                      'class': obj[0] if obj is not None else None,
                      'location': entry,
+                     'timeframe': timeframe
                      })
         return objects

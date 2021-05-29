@@ -58,7 +58,8 @@ def _print_objs_tabular(objs: List, print_colorized: bool) -> None:
         'location': s['location'].name,
         'status': (red + "LOAD FAILED" + reset if s['class'] is None
                    else "OK" if names.count(s['name']) == 1
-                   else yellow + "DUPLICATE NAME" + reset)
+                   else yellow + "DUPLICATE NAME" + reset),
+        'timeframe': s['timeframe'] if s['timeframe'] else '--',
     } for s in objs]
     for idx, s in enumerate(objs):
         if 'hyperoptable' in s:
