@@ -58,6 +58,12 @@ def setup_logging_pre() -> None:
         handlers=[logging.StreamHandler(sys.stderr), bufferHandler]
     )
 
+    try:
+        import coloredlogs
+        coloredlogs.install(level=logging.getLevelName(logging.root.level), fmt=LOGFORMAT)
+    except:
+        pass
+
 
 def setup_logging(config: Dict[str, Any]) -> None:
     """
