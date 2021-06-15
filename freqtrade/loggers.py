@@ -61,7 +61,7 @@ def setup_logging_pre() -> None:
     try:
         import coloredlogs
         coloredlogs.install(level=logging.getLevelName(logging.root.level), fmt=LOGFORMAT)
-    except:
+    except:  # noqa: E722
         pass
 
 

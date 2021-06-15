@@ -69,7 +69,7 @@ mypy freqtrade
 #### Run isort
 
 ``` bash
-isort .
+isort freqtrade tests scripts
 ```
 
 ## (Core)-Committer Guide
