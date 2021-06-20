@@ -307,7 +307,9 @@ def test_VolumePairList_refresh_empty(mocker, markets_empty, whitelist_conf):
       {"method": "PrecisionFilter"},
       {"method": "PriceFilter", "low_price_ratio": 0.03},
       {"method": "SpreadFilter", "max_spread_ratio": 0.005},
-      {"method": "ShuffleFilter"}, {"method": "PerformanceFilter"}],
+      {"method": "ShuffleFilter"},
+      {"method": "PerformanceFilter"},
+      {"method": "CategoryFilter"}],
      "ETH", []),
     # AgeFilter and VolumePairList (require 2 days only, all should pass age test)
     ([{"method": "VolumePairList", "number_assets": 5, "sort_key": "quoteVolume"},
@@ -1158,3 +1160,17 @@ def test_expand_pairlist_keep_invalid(wildcardlist, pairs, expected):
             expand_pairlist(wildcardlist, pairs, keep_invalid=True)
     else:
         assert sorted(expand_pairlist(wildcardlist, pairs, keep_invalid=True)) == sorted(expected)
+
+def test_category_pairlist(mocker, markets, static_pl_conf):
+    freqtrade = get_patched_freqtradebot(mocker, static_pl_conf)
+    mocker.patch.multiple(
+        'freqtrade.exchange.Exchange',
+        exchange_has=MagicMock(return_value=True),
+        markets=PropertyMock(return_value=markets),
+    )
+    freqtrade.pairlists.refresh_pairlist()
+    # List ordered by BaseVolume
+    whitelist = ['ETH/BTC', 'TKN/BTC']
+    # Ensure all except those in whitelist are removed
+    assert set(whitelist) == set(freqtrade.pairlists.whitelist)
+    assert static_pl_conf['exchange']['pair_blacklist'] == freqtrade.pairlists.blacklist

@@ -31,6 +31,7 @@ You may also use something like `.*DOWN/BTC` or `.*UP/BTC` to exclude leveraged 
 * [`SpreadFilter`](#spreadfilter)
 * [`RangeStabilityFilter`](#rangestabilityfilter)
 * [`VolatilityFilter`](#volatilityfilter)
+* [`CategoryFilter`](#categoryfilter)
 
 !!! Tip "Testing pairlists"
     Pairlist configurations can be quite tricky to get right. Best use the [`test-pairlist`](utils.md#test-pairlist) utility sub-command to test your configuration quickly.
@@ -270,9 +271,46 @@ If the volatility over the last 10 days is not in the range of 0.05-0.50, remove
 ]
 ```
 
+#### CategoryFilter
+
+Removes pairs which source coin doesn't or does belong to a category, based on [CoinGecko's categories](https://www.coingecko.com/en/categories).
+
+This can be useful to exclude "stablecoin" or "fan token" pairs, or to require pairs to belong to given categories. Interesting categories to be excluded may be:
+- `stablecoins`
+- `fan-token`
+- `governance`
+
+!!! Tip
+    The full list of CoinGecko's categories can be retrieved via:
+    ```sh
+    curl -X GET "https://api.coingecko.com/api/v3/coins/categories/list" -H  "accept: application/json"
+    ```
+
+Category lookup is done via [coingecko's public API](https://www.coingecko.com/api/documentations/v3) and lists are cached for `refresh_period` seconds (default 86400). When cache updates fails due to network errors, `ignore_failures` decides whether to allow the pairs (true/default), or raise an exception (false).
+
+The `vs_currency` config parameter is required by the coingecko API in order to retrieve market data. To determine category membership, it should be irrelevant. It is set to "USD" by default and can be omitted.
+
+```json
+"pairlists": [
+    {
+        "method": "CategoryFilter",
+        "include": [
+            "meme-token"
+        ],
+        "exclude": [
+            "stablecoins",
+            "governance",
+            "fan-token"
+        ],
+        "ignore_failures": false,
+        "refresh_period": 86400,
+        "vs_currency": "USD"
+    }
+```
+
 ### Full example of Pairlist Handlers
 
-The below example blacklists `BNB/BTC`, uses `VolumePairList` with `20` assets, sorting pairs by `quoteVolume` and applies [`PrecisionFilter`](#precisionfilter) and [`PriceFilter`](#pricefilter), filtering all assets where 1 price unit is > 1%. Then the [`SpreadFilter`](#spreadfilter) and [`VolatilityFilter`](#volatilityfilter) is applied and pairs are finally shuffled with the random seed set to some predefined value.
+The below example blacklists `BNB/BTC`, uses `VolumePairList` with `20` assets, sorting pairs by `quoteVolume` and applies [`CategoryFilter`](#categoryfilter) to eliminate stable coins and fan tokens, [`PrecisionFilter`](#precisionfilter) and [`PriceFilter`](#pricefilter), filtering all assets where 1 price unit is > 1%. Then the [`SpreadFilter`](#spreadfilter) and [`VolatilityFilter`](#volatilityfilter) is applied and pairs are finally shuffled with the random seed set to some predefined value.
 
 ```json
 "exchange": {
@@ -284,6 +322,10 @@ The below example blacklists `BNB/BTC`, uses `VolumePairList` with `20` assets, 
         "method": "VolumePairList",
         "number_assets": 20,
         "sort_key": "quoteVolume"
+    },
+    {
+        "method": "CategoryFilter",
+        "exclude": [ "stablecoins", "fan-token" ]
     },
     {"method": "AgeFilter", "min_days_listed": 10},
     {"method": "PrecisionFilter"},
